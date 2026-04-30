@@ -16,6 +16,19 @@ export default function Page() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   const [loadedImages, setLoadedImages] = useState<Record<number, boolean >>({});
+  const [refreshKey,setRefreshKey] = useState(0);
+
+  useEffect(() => {
+  const handleBack = () => {
+    setRefreshKey((prev) => prev + 1); // force re-render
+  };
+
+  window.addEventListener("pageshow", handleBack);
+
+  return () => {
+    window.removeEventListener("pageshow", handleBack);
+  };
+}, []);
 
   useEffect(() => {
   const handleFocus = () => {
@@ -46,6 +59,20 @@ const [isCartOpen, setIsCartOpen] = useState(false);
 const total = cart.reduce((acc, item) => {
   return acc + parseInt(item.price.replace(/[^0-9]/g, ""));
 }, 0);
+
+const generateWhatsAppMessage = () => {
+  if (cart.length === 0) return "";
+
+  let message = "I want to order:%0A%0A";
+
+  cart.forEach((item) => {
+    message += `• ${item.name} — ${item.price}%0A`;
+  });
+
+  message += `%0A*Total:* PKR ${total}`;
+
+  return message;
+};
 
 const toggleWishlist = (id: number) => {
   setWishlist((prev) =>
@@ -142,7 +169,10 @@ const toggleWishlist = (id: number) => {
     
       {/* Products */}
       <section className="px-6 py-20 bg-gray-50">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div
+          key={refreshKey}
+          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 max-w-6xl mx-auto"
+        >
           {filteredProducts.map((product) => {
   const isLoaded = loadedImages[product.id] ?? false;
 
@@ -306,9 +336,14 @@ const toggleWishlist = (id: number) => {
       {cart.length > 0 && (
         <div className="mt-6 border-t pt-4">
           <p className="font-semibold mt-4">Total: PKR {total}</p>
-          <button className="w-full bg-black text-white py-3 rounded-xl">
-            Checkout
-          </button>
+          <a
+            href={`https://wa.me/923482209380?text=${generateWhatsAppMessage()}`}
+            target="_blank"
+            onClick={() => setIsCartOpen(false)}
+            className="block w-full bg-green-500 text-white text-center py-3 rounded-xl"
+          >
+            Order on WhatsApp
+          </a>
         </div>
       )}
     </div>
