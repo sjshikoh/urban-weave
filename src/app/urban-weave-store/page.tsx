@@ -191,6 +191,7 @@ const toggleWishlist = (id: number) => {
           alt={product.name}
           fill
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          priority={product.id === 1}
           onLoad={() => {
             setLoadedImages((prev) => ({
               ...prev,
