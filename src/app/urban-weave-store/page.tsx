@@ -18,30 +18,7 @@ export default function Page() {
   const [loadedImages, setLoadedImages] = useState<Record<number, boolean >>({});
   const [refreshKey,setRefreshKey] = useState(0);
 
-  useEffect(() => {
-  const handleBack = () => {
-    setRefreshKey((prev) => prev + 1); // force re-render
-  };
-
-  window.addEventListener("pageshow", handleBack);
-
-  return () => {
-    window.removeEventListener("pageshow", handleBack);
-  };
-}, []);
-
-  useEffect(() => {
-  const handleFocus = () => {
-    // reset images when user returns (fix WhatsApp issue)
-    setLoadedImages({});
-  };
-
-  window.addEventListener("focus", handleFocus);
-
-  return () => {
-    window.removeEventListener("focus", handleFocus);
-  };
-}, []);
+  
 
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
@@ -98,6 +75,21 @@ const toggleWishlist = (id: number) => {
 
   return matchesSearch && matchesCategory;
 });
+
+useEffect(() => {
+  const handleVisibility = () => {
+    if (document.visibilityState === "visible") {
+      setRefreshKey((prev) => prev + 1);
+      setLoadedImages({});
+    }
+  };
+
+  document.addEventListener("visibilitychange", handleVisibility);
+
+  return () => {
+    document.removeEventListener("visibilitychange", handleVisibility);
+  };
+}, []);
 
   useEffect(() => {
     if (selectedProduct) {
@@ -187,6 +179,7 @@ const toggleWishlist = (id: number) => {
 
         {/* Image */}
         <Image
+          key={refreshKey}   // 👈 REQUIRED
           src={product.image}
           alt={product.name}
           fill
@@ -336,15 +329,26 @@ const toggleWishlist = (id: number) => {
       {/* Footer */}
       {cart.length > 0 && (
         <div className="mt-6 border-t pt-4">
+          <p className="text-sm text-gray-500 mb-2">
+            You’ll be redirected to WhatsApp to confirm your order
+          </p>
           <p className="font-semibold mt-4">Total: PKR {total}</p>
           <a
-            href={`https://wa.me/923482209380?text=${generateWhatsAppMessage()}`}
+            href={`https://wa.me/92305?text=${generateWhatsAppMessage()}`}
             target="_blank"
+            rel="noopener noreferrer"
             onClick={() => setIsCartOpen(false)}
             className="block w-full bg-green-500 text-white text-center py-3 rounded-xl"
           >
             Order on WhatsApp
           </a>
+           {/* Continue Shopping */}
+          <button
+            onClick={() => setIsCartOpen(false)}
+            className="w-full border py-2 rounded-xl text-gray-700 hover:bg-gray-100 transition"
+          >
+            Continue Shopping
+          </button>
         </div>
       )}
     </div>
